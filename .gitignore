@@ -1,0 +1,11 @@
+# Interno: datos de cliente y servidor. NO va al repo publico.
+docs/despliegue.md
+# Instrucciones operativas para Claude: nombran el sitio de produccion donde esta vivo el fix.
+CLAUDE.md
+memory/
+.goalspec/
+
+# Artefactos de compilacion: el .zip se adjunta al release, no se versiona.
+build/
+__pycache__/
+*.pyc

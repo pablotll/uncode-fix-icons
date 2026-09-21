@@ -1,0 +1,19 @@
+# Entorno desechable para probar el plugin: WordPress + MariaDB.
+# Lo levanta tests/probar.sh; no hace falta usarlo a mano.
+services:
+  db:
+    image: mariadb:11
+    environment:
+      MARIADB_ROOT_PASSWORD: root
+      MARIADB_DATABASE: wp
+      MARIADB_USER: wp
+      MARIADB_PASSWORD: wp
+  wp:
+    image: wordpress:php8.3-apache
+    depends_on: [db]
+    ports: ["${UFI_PORT:-8931}:80"]
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: wp
+      WORDPRESS_DB_PASSWORD: wp
+      WORDPRESS_DB_NAME: wp

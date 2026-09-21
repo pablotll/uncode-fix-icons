@@ -1,0 +1,152 @@
+/* ------------------------------------------------------------------
+   uncode-fa-collisions.css — 128 overrides
+
+   Problema: cuando un plugin encola Font Awesome 5/6 en un sitio con el
+   tema Uncode, los iconos con prefijo explicito (`<i class="fas fa-clock">`)
+   salen como glifos que no tienen nada que ver. Uncode carga despues
+   `library/css/uncode-icons.css`, que redefine ~1570 clases `.fa-*` con los
+   codepoints de su fuente propia ('uncodeicon'), pero solo fuerza la
+   font-family en `.fa` — no en `.fas` / `.far` / `.fab` / `.fa-solid`.
+   Resultado: la FUENTE la pone Font Awesome y el CONTENT lo pone Uncode.
+   Para `fa-clock` eso da \e072, que en FA6 Solid es `fa-toilet-paper-slash`.
+
+   Solucion: restaurar el codepoint de Font Awesome solo cuando el elemento
+   lleva prefijo explicito FA5/6, que Uncode nunca usa. Especificidad 0,2,0
+   contra el 0,1,1 de Uncode: gana sin `!important`. Los iconos propios del
+   tema (`<i class="fa fa-tiktok">`) no se tocan.
+
+   Generado comparando Font Awesome 6.5.1 contra uncode-icons.css de Uncode
+   2.12.7. Reverificado el 2026-09-20 contra Uncode 2.12.8 + WPVR 9.1.3
+   (que sigue trayendo FA 6.5.1): las 128 reglas son identicas.
+
+   Regenerar con scripts/generar-colisiones.py si Font Awesome o Uncode
+   suben de version. Ver docs/causa-raiz-y-diagnostico.md.
+   ------------------------------------------------------------------ */
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-asterisk::before{content:"\2a"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-at::before{content:"\40"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-audible::before{content:"\f373"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-backspace::before{content:"\f55a"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-battery::before{content:"\f240"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-battery-2::before{content:"\f243"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-battery-3::before{content:"\f242"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-battery-4::before{content:"\f241"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-battery-full::before{content:"\f240"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-bitcoin::before{content:"\f379"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-book-open::before{content:"\f518"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-box::before{content:"\f466"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-brush::before{content:"\f55d"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-calendar::before{content:"\f133"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-cancel::before{content:"\f05e"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-chart-area::before{content:"\f1fe"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-chart-bar::before{content:"\f080"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-chart-line::before{content:"\f201"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-chart-pie::before{content:"\f200"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-circle-check::before{content:"\f058"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-circle-minus::before{content:"\f056"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-circle-plus::before{content:"\f055"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-clipboard::before{content:"\f328"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-clock::before{content:"\f017"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-code-fork::before{content:"\e13b"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-commenting::before{content:"\f4ad"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-credit-card-alt::before{content:"\f09d"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-cross::before{content:"\f654"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-cutlery::before{content:"\f2e7"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-dashboard::before{content:"\f624"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-desktop::before{content:"\f390"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-dice::before{content:"\f522"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-directions::before{content:"\f5eb"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-discord::before{content:"\f392"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-divide::before{content:"\f529"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-dollar::before{content:"\24"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-earth::before{content:"\f57d"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-ebay::before{content:"\f4f4"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-ellipsis::before{content:"\f141"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-equals::before{content:"\3d"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-exclamation::before{content:"\21"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-facebook-f::before{content:"\f39e"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-feather::before{content:"\f52d"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-flipboard::before{content:"\f44d"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-goodreads::before{content:"\f3a8"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-google-plus::before{content:"\f2b3"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-hand::before{content:"\f256"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-hashtag::before{content:"\23"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-heart-pulse::before{content:"\f21e"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-hotel::before{content:"\f594"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-hourglass::before{content:"\f254"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-infinity::before{content:"\f534"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-inr::before{content:"\e1bc"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-instagram-square::before{content:"\e055"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-keyboard::before{content:"\f11c"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-lightbulb::before{content:"\f0eb"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-linkedin::before{content:"\f08c"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-location::before{content:"\f601"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-lock-open::before{content:"\f3c1"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-magnifying-glass::before{content:"\f002"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-mail-reply::before{content:"\f3e5"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-map-pin::before{content:"\f276"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-maximize::before{content:"\f31e"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-message::before{content:"\f27a"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-minimize::before{content:"\f78c"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-mobile::before{content:"\f3ce"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-mobile-phone::before{content:"\f3ce"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-moon::before{content:"\f186"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-newspaper::before{content:"\f1ea"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-paintbrush::before{content:"\f1fc"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-pen::before{content:"\f304"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-pencil::before{content:"\f303"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-percent::before{content:"\25"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-plus::before{content:"\2b"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-poop::before{content:"\f619"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-question::before{content:"\3f"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-redo::before{content:"\f01e"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-reorder::before{content:"\f550"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-repeat::before{content:"\f363"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-reply::before{content:"\f3e5"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-ribbon::before{content:"\f4d6"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-rotate-left::before{content:"\f2ea"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-rotate-right::before{content:"\f2f9"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-rss::before{content:"\f09e"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-scissors::before{content:"\f0c4"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-shirt::before{content:"\f553"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-shopping-bag::before{content:"\f290"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-shuffle::before{content:"\f074"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-smile::before{content:"\f118"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-snapchat-ghost::before{content:"\f2ab"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-sort-alpha-desc::before{content:"\f881"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-sort-amount-desc::before{content:"\f884"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-sort-numeric-desc::before{content:"\f886"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-spell-check::before{content:"\f891"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-spoon::before{content:"\f2e5"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-square-check::before{content:"\f14a"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-square-minus::before{content:"\f146"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-square-plus::before{content:"\f0fe"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-square-x-twitter::before{content:"\e61a"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-stopwatch::before{content:"\f2f2"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-store::before{content:"\f54e"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-sun::before{content:"\f185"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-sync::before{content:"\f021"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-tablet::before{content:"\f3fb"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-tachometer::before{content:"\f62a"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-thermometer::before{content:"\f491"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-threads::before{content:"\e618"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-tiktok::before{content:"\e07b"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-times::before{content:"\f00d"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-times-rectangle::before{content:"\f410"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-toolbox::before{content:"\f552"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-tools::before{content:"\f7d9"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-transgender::before{content:"\f225"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-try::before{content:"\e2bb"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-turkish-lira::before{content:"\e2bb"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-usd::before{content:"\24"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-viber::before{content:"\f409"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-video::before{content:"\f03d"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-vimeo::before{content:"\f40a"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-volume-high::before{content:"\f028"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-volume-low::before{content:"\f027"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-volume-mute::before{content:"\f6a9"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-wallet::before{content:"\f555"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-warning::before{content:"\f071"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-waze::before{content:"\f83f"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-wheelchair-alt::before{content:"\e2ce"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-window-close::before{content:"\f410"}
+:is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-youtube-square::before{content:"\f431"}
