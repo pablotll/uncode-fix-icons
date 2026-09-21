@@ -27,8 +27,11 @@ wp() { docker compose exec -T wp wp --allow-root --path=/var/www/html "$@"; }
 
 echo "→ Levantando WordPress en $URL"
 docker compose up -d
-# Apache contesta antes de que la base esté lista; hay que esperar a las dos.
-until docker compose exec -T db mariadb-admin ping -uroot -proot --silent >/dev/null 2>&1; do sleep 1; done
+# Apache contesta antes de que la base esté lista, y un `ping` tampoco basta: en
+# el primer arranque MariaDB levanta un servidor temporal (sin red y sin el
+# usuario de WordPress) mientras se inicializa, y ese servidor ya contesta al
+# ping. Lo único que prueba que está lista es entrar como WordPress, por red.
+until docker compose exec -T db mariadb -h 127.0.0.1 -uwp -pwp wp -e 'SELECT 1' >/dev/null 2>&1; do sleep 1; done
 until [ "$(curl -s -o /dev/null -w '%{http_code}' "$URL/" || true)" != "000" ]; do sleep 1; done
 docker compose exec -T wp bash -c 'command -v wp >/dev/null || {
 	curl -sL https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar -o /usr/local/bin/wp
