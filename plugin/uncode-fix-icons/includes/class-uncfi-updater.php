@@ -78,24 +78,30 @@ class UNCFI_Updater {
 	}
 
 	/**
-	 * Prefiere un .zip adjunto al release; si no hay, usa el zipball.
+	 * URL del .zip adjunto al release, o '' si no hay.
 	 *
-	 * El zipball trae el codigo dentro de una carpeta con el hash del commit,
-	 * por eso hace falta `renombrar()` mas abajo.
+	 * Solo sirve el .zip adjunto. NO se cae al zipball automatico de GitHub:
+	 * el zipball es la raiz del repo, y ahi el plugin vive en
+	 * `plugin/uncode-fix-icons/`, asi que se instalaria una carpeta sin el
+	 * encabezado donde WordPress lo busca, el plugin quedaria desactivado y la
+	 * version que funcionaba ya estaria reemplazada. Sin .zip adjunto, mejor no
+	 * ofrecer actualizacion: un respaldo que no funciona es peor que ninguno.
 	 *
 	 * @param array $datos Respuesta de la API.
 	 * @return string
 	 */
 	private static function zip( $datos ) {
-		if ( ! empty( $datos['assets'] ) && is_array( $datos['assets'] ) ) {
-			foreach ( $datos['assets'] as $asset ) {
-				if ( isset( $asset['browser_download_url'] ) && preg_match( '#\.zip$#i', $asset['browser_download_url'] ) ) {
-					return $asset['browser_download_url'];
-				}
+		if ( empty( $datos['assets'] ) || ! is_array( $datos['assets'] ) ) {
+			return '';
+		}
+
+		foreach ( $datos['assets'] as $asset ) {
+			if ( isset( $asset['browser_download_url'] ) && preg_match( '#/uncode-fix-icons\.zip$#i', $asset['browser_download_url'] ) ) {
+				return $asset['browser_download_url'];
 			}
 		}
 
-		return isset( $datos['zipball_url'] ) ? $datos['zipball_url'] : '';
+		return '';
 	}
 
 	/**
@@ -167,11 +173,11 @@ class UNCFI_Updater {
 	}
 
 	/**
-	 * Renombra la carpeta del zipball al slug del plugin.
+	 * Asegura que la carpeta instalada se llame como el slug del plugin.
 	 *
-	 * Sin esto, un zipball de GitHub se instalaria como
-	 * `pablotll-uncode-fix-icons-a1b2c3d` y WordPress lo tomaria por un plugin
-	 * distinto en cada actualizacion.
+	 * El .zip del release ya trae `uncode-fix-icons/`, asi que normalmente no
+	 * hace nada. Es un cinturon de seguridad por si algun dia un .zip sale con
+	 * otro nombre de carpeta: WordPress lo tomaria por un plugin distinto.
 	 *
 	 * @param string      $source      Carpeta de origen.
 	 * @param string      $remote      Carpeta remota.

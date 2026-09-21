@@ -33,5 +33,23 @@ Además confirma que las reglas salieron de **calcular** con tus hojas, no de la
 de respaldo. Ese detalle importa: con la tabla de respaldo los íconos también salen
 bien, así que medir solo los íconos no basta para saber que el motor funciona.
 
+## El actualizador
+
+`prueba-updater.php` prueba el actualizador por los dos lados, con el entorno
+levantado:
+
+```bash
+cd tests
+docker compose cp prueba-updater.php wp:/tmp/prueba-updater.php
+docker compose exec -T wp wp --allow-root --path=/var/www/html eval-file /tmp/prueba-updater.php
+```
+
+Simula respuestas de la API de GitHub (sin `.zip` adjunto, con un `.zip` de otro
+nombre, con el correcto, con una versión más vieja) y comprueba que el plugin solo
+ofrezca actualizarse cuando hay un `.zip` válido y una versión más nueva. Al final
+consulta la API real del repo.
+
+## Orden inverso
+
 Para probar el orden inverso (Font Awesome cargando después de Uncode), agrega
 `define('UFI_FA_DESPUES', true);` al `wp-config.php` del contenedor.

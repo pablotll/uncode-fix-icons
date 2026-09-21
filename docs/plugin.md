@@ -108,6 +108,13 @@ Además:
   `WP_DEBUG_LOG` activos: `debug.log` vacío, sin errores ni warnings.
 - **Actualizador contra un repo sin releases:** devuelve `false` y no ofrece nada, en
   vez de romper.
+- **El actualizador solo usa el `.zip` adjunto al release** (desde 1.0.1). La 1.0.0
+  recurría al zipball automático de GitHub si un release no traía `.zip`, pero el
+  zipball es la raíz del repo, donde el plugin vive en `plugin/uncode-fix-icons/`:
+  se habría instalado sin el encabezado donde WordPress lo busca y habría quedado
+  desactivado. Ahora, sin `.zip` adjunto, no se ofrece actualización.
+  `tests/prueba-updater.php` lo prueba por los dos lados. Lo encontró la sesión que
+  mantiene las actualizaciones de los sitios, auditando el canal de updates.
 - **Actualizador contra el release real `v1.0.0`:** una copia marcada como 0.9.9 vio
   la 1.0.0 disponible, se actualizó sola descargando el `.zip` del release, quedó en
   la carpeta `uncode-fix-icons` y activa, y siguió corrigiendo los 7 íconos.
