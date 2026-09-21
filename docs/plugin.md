@@ -108,6 +108,9 @@ Además:
   `WP_DEBUG_LOG` activos: `debug.log` vacío, sin errores ni warnings.
 - **Actualizador contra un repo sin releases:** devuelve `false` y no ofrece nada, en
   vez de romper.
+- **Actualizador contra el release real `v1.0.0`:** una copia marcada como 0.9.9 vio
+  la 1.0.0 disponible, se actualizó sola descargando el `.zip` del release, quedó en
+  la carpeta `uncode-fix-icons` y activa, y siguió corrigiendo los 7 íconos.
 
 ## Limitaciones conocidas
 
@@ -126,9 +129,6 @@ Además:
 
 ## Lo que falta probar
 
-- **El actualizador**, más allá de su degradación (contra un repo sin releases
-  devuelve `false` y no ofrece nada). Que la actualización *aparezca* en el escritorio
-  necesita un release publicado — el paso que está esperando decisión.
 - **Mezclas realistas de plugins.** El entorno de prueba tiene Uncode y un stub. No
   está probado contra WooCommerce, Elementor o constructores de página, que es el
   ecosistema donde esto se va a instalar.
