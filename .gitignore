@@ -9,3 +9,6 @@ memory/
 build/
 __pycache__/
 *.pyc
+
+# Comandos locales de Claude Code (3-tier-memory). No van al repo publico.
+.claude/
