@@ -1,0 +1,48 @@
+name: Release
+
+# Un tag como v1.1.0 → arma uncode-fix-icons.zip (con vendor/) y lo adjunta a un GitHub
+# Release. Los sitios con el plugin lo toman de ahi en Escritorio → Actualizaciones.
+# Los tags con sufijo (v1.2.0-rc.1) salen como prerelease, y el actualizador los ignora.
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+          tools: composer:v2
+          coverage: none
+
+      # Las pruebas de tests/ necesitan Docker y el .zip de Uncode (comercial), asi que
+      # aqui solo se revisa la sintaxis. Se prueba local antes de taggear.
+      - name: Lint
+        run: find plugin/uncode-fix-icons -name '*.php' -not -path '*/vendor/*' -print0 | xargs -0 -n1 php -l
+
+      - name: Build ZIP
+        run: |
+          ./scripts/empaquetar.sh "${GITHUB_REF_NAME#v}"
+          # El actualizador nativo de la 1.0.x solo acepta este nombre y esta estructura.
+          unzip -l build/uncode-fix-icons.zip | grep -q ' uncode-fix-icons/uncode-fix-icons.php$'
+          unzip -l build/uncode-fix-icons.zip | grep -q ' uncode-fix-icons/vendor/autoload.php$'
+          unzip -p build/uncode-fix-icons.zip uncode-fix-icons/uncode-fix-icons.php | grep -E "Version:|UNCFI_VERSION"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          files: build/uncode-fix-icons.zip
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          prerelease: ${{ contains(github.ref_name, '-') }}

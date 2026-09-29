@@ -1,0 +1,18 @@
+{
+    "name": "pablotll/uncode-fix-icons",
+    "description": "Arregla los iconos que salen equivocados cuando el tema Uncode convive con un plugin que carga Font Awesome.",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "homepage": "https://github.com/pablotll/uncode-fix-icons",
+    "require": {
+        "php": ">=7.0",
+        "yahnis-elsts/plugin-update-checker": "^5.5"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true,
+        "platform": {
+            "php": "7.0.33"
+        }
+    }
+}

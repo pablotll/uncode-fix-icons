@@ -1,207 +1,127 @@
 <?php
 /**
- * Actualizaciones desde los releases de GitHub.
+ * Actualizaciones desde los releases del repo publico de GitHub, con Plugin Update
+ * Checker (PUC). Sin token y sin mirror.
  *
- * WordPress solo sabe buscar actualizaciones en wordpress.org. Esto engancha el
- * transient de actualizaciones para que un release nuevo en el repo aparezca en
- * el escritorio como cualquier otra actualizacion, con su boton.
+ * Publicar una version es: git tag vX.Y.Z && git push origin vX.Y.Z. El workflow de
+ * release arma uncode-fix-icons.zip (con vendor/) y lo adjunta al release; los sitios
+ * lo ven en Escritorio → Actualizaciones.
+ *
+ * Tres detalles importan:
+ *   - Solo el .zip adjunto. El zipball automatico de GitHub es la raiz del repo, donde
+ *     el plugin vive en plugin/uncode-fix-icons/: se instalaria una carpeta sin el
+ *     encabezado, el plugin quedaria desactivado y la version buena ya reemplazada.
+ *     REQUIRE_RELEASE_ASSETS no basta para evitarlo: si el ultimo release no trae el
+ *     .zip, PUC pasa a la estrategia "ultimo tag", que ofrece justo ese zipball. Por
+ *     eso se deja solo la estrategia del ultimo release (ver solo_releases()).
+ *   - El .zip se llama exactamente uncode-fix-icons.zip. El actualizador nativo de la
+ *     1.0.x solo acepta ese nombre, y es el que instala la primera version con PUC.
+ *   - El "ultimo release" de GitHub se salta los prereleases, asi que un tag como
+ *     v1.2.0-rc.1 nunca llega a los sitios.
  *
  * @package UncodeFixIcons
  */
 
 defined( 'ABSPATH' ) || exit;
 
+use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
+
 /**
- * Actualizador contra la API publica de GitHub.
+ * Actualizador contra los releases de GitHub.
  */
-class UNCFI_Updater {
+final class UNCFI_Updater {
 
-	/** Cuanto se cachea la consulta a GitHub. */
-	const TTL = 12 * HOUR_IN_SECONDS;
+	const REPO_URL = 'https://github.com/pablotll/uncode-fix-icons/';
 
-	/** Transient de la ultima respuesta. */
-	const TRANSIENT = 'uncfi_release';
+	/** El asset que se instala. No cambiarlo: el actualizador nativo de la 1.0.x lo busca por nombre. */
+	const ZIP = 'uncode-fix-icons.zip';
 
-	/** Engancha los filtros. */
+	/** Version de WordPress con la que se declara probado. */
+	const WP_TESTED = '7.1';
+
+	/**
+	 * Api::REQUIRE_RELEASE_ASSETS de PUC. Va como literal porque la clase vive en un
+	 * namespace atado a la version menor de PUC (v5p7, v5p8…).
+	 */
+	const REQUIRE_RELEASE_ASSETS = 2;
+
+	/** Api::STRATEGY_LATEST_RELEASE de PUC, por la misma razon. */
+	const STRATEGY_LATEST_RELEASE = 'latest_release';
+
+	/** Engancha el actualizador. */
 	public static function init() {
-		add_filter( 'pre_set_site_transient_update_plugins', array( __CLASS__, 'comprobar' ) );
-		add_filter( 'plugins_api', array( __CLASS__, 'ficha' ), 10, 3 );
-		add_filter( 'upgrader_source_selection', array( __CLASS__, 'renombrar' ), 10, 4 );
+		if ( ! self::should_run() ) {
+			return;
+		}
+		if ( ! class_exists( PucFactory::class ) ) {
+			return; // Falta vendor/ (un checkout de git sin composer install).
+		}
+
+		$checker = PucFactory::buildUpdateChecker( self::REPO_URL, UNCFI_FILE, UNCFI_SLUG );
+		$checker->setBranch( 'main' );
+		$checker->getVcsApi()->enableReleaseAssets( '/^' . preg_quote( self::ZIP, '/' ) . '$/', self::REQUIRE_RELEASE_ASSETS );
+
+		add_filter( 'puc_vcs_update_detection_strategies-' . UNCFI_SLUG, array( __CLASS__, 'solo_releases' ) );
+		add_filter( 'puc_request_update_result-' . UNCFI_SLUG, array( __CLASS__, 'completar_update' ) );
+		add_filter( 'puc_request_info_result-' . UNCFI_SLUG, array( __CLASS__, 'completar_ficha' ) );
 	}
 
 	/**
-	 * Consulta el ultimo release, con cache.
+	 * Solo donde se buscan o instalan actualizaciones. admin-ajax cuenta como admin
+	 * aun para visitantes anonimos, asi que ahi ademas pide update_plugins.
 	 *
-	 * Falla en silencio a proposito: si GitHub no contesta, el sitio no debe
-	 * romperse ni tardar en cargar por eso.
-	 *
-	 * @return array|false
+	 * @return bool
 	 */
-	public static function release() {
-		$cache = get_site_transient( self::TRANSIENT );
-		if ( is_array( $cache ) ) {
-			return empty( $cache ) ? false : $cache;
+	private static function should_run() {
+		if ( wp_doing_cron() || ( defined( 'WP_CLI' ) && WP_CLI ) ) {
+			return true;
 		}
-
-		$respuesta = wp_remote_get(
-			'https://api.github.com/repos/' . UNCFI_REPO . '/releases/latest',
-			array(
-				'timeout' => 10,
-				'headers' => array(
-					'Accept'     => 'application/vnd.github+json',
-					'User-Agent' => 'uncode-fix-icons/' . UNCFI_VERSION,
-				),
-			)
-		);
-
-		if ( is_wp_error( $respuesta ) || 200 !== wp_remote_retrieve_response_code( $respuesta ) ) {
-			set_site_transient( self::TRANSIENT, array(), HOUR_IN_SECONDS );
+		if ( ! is_admin() ) {
 			return false;
 		}
-
-		$datos = json_decode( wp_remote_retrieve_body( $respuesta ), true );
-		if ( ! is_array( $datos ) || empty( $datos['tag_name'] ) ) {
-			set_site_transient( self::TRANSIENT, array(), HOUR_IN_SECONDS );
-			return false;
+		if ( wp_doing_ajax() ) {
+			return current_user_can( 'update_plugins' );
 		}
-
-		$release = array(
-			'version' => ltrim( $datos['tag_name'], 'vV' ),
-			'zip'     => self::zip( $datos ),
-			'notas'   => isset( $datos['body'] ) ? (string) $datos['body'] : '',
-			'fecha'   => isset( $datos['published_at'] ) ? (string) $datos['published_at'] : '',
-		);
-
-		set_site_transient( self::TRANSIENT, $release, self::TTL );
-
-		return $release;
+		return true;
 	}
 
 	/**
-	 * URL del .zip adjunto al release, o '' si no hay.
+	 * Deja solo la estrategia del ultimo release. Las otras dos (ultimo tag y rama)
+	 * descargan el zipball de la raiz del repo, que no es un plugin instalable.
 	 *
-	 * Solo sirve el .zip adjunto. NO se cae al zipball automatico de GitHub:
-	 * el zipball es la raiz del repo, y ahi el plugin vive en
-	 * `plugin/uncode-fix-icons/`, asi que se instalaria una carpeta sin el
-	 * encabezado donde WordPress lo busca, el plugin quedaria desactivado y la
-	 * version que funcionaba ya estaria reemplazada. Sin .zip adjunto, mejor no
-	 * ofrecer actualizacion: un respaldo que no funciona es peor que ninguno.
-	 *
-	 * @param array $datos Respuesta de la API.
-	 * @return string
+	 * @param array $estrategias Estrategias de PUC, por nombre.
+	 * @return array
 	 */
-	private static function zip( $datos ) {
-		if ( empty( $datos['assets'] ) || ! is_array( $datos['assets'] ) ) {
-			return '';
-		}
-
-		foreach ( $datos['assets'] as $asset ) {
-			if ( isset( $asset['browser_download_url'] ) && preg_match( '#/uncode-fix-icons\.zip$#i', $asset['browser_download_url'] ) ) {
-				return $asset['browser_download_url'];
-			}
-		}
-
-		return '';
+	public static function solo_releases( $estrategias ) {
+		return array_intersect_key( $estrategias, array( self::STRATEGY_LATEST_RELEASE => true ) );
 	}
 
 	/**
-	 * Mete el update en el transient si hay version nueva.
+	 * Completa lo que GitHub no da: compatibilidad, para la pantalla de actualizaciones.
 	 *
-	 * @param object $transient Transient de actualizaciones.
-	 * @return object
+	 * @param object|null $update Update.
+	 * @return object|null
 	 */
-	public static function comprobar( $transient ) {
-		if ( ! is_object( $transient ) ) {
-			return $transient;
+	public static function completar_update( $update ) {
+		if ( is_object( $update ) ) {
+			$update->tested       = empty( $update->tested ) ? self::WP_TESTED : $update->tested;
+			$update->requires_php = empty( $update->requires_php ) ? '7.0' : $update->requires_php;
 		}
-
-		$release = self::release();
-		if ( ! $release || empty( $release['zip'] ) ) {
-			return $transient;
-		}
-
-		$basename = plugin_basename( UNCFI_FILE );
-
-		if ( version_compare( $release['version'], UNCFI_VERSION, '<=' ) ) {
-			if ( isset( $transient->response[ $basename ] ) ) {
-				unset( $transient->response[ $basename ] );
-			}
-			return $transient;
-		}
-
-		$transient->response[ $basename ] = (object) array(
-			'id'          => UNCFI_REPO,
-			'slug'        => UNCFI_SLUG,
-			'plugin'      => $basename,
-			'new_version' => $release['version'],
-			'url'         => 'https://github.com/' . UNCFI_REPO,
-			'package'     => $release['zip'],
-		);
-
-		return $transient;
+		return $update;
 	}
 
 	/**
-	 * Ficha del plugin en la ventana de "Ver detalles".
+	 * Lo mismo para la ventana de "Ver detalles".
 	 *
-	 * @param false|object|array $resultado Resultado previo.
-	 * @param string             $accion    Accion pedida.
-	 * @param object             $args      Argumentos.
-	 * @return false|object|array
+	 * @param object|null $info Ficha del plugin.
+	 * @return object|null
 	 */
-	public static function ficha( $resultado, $accion, $args ) {
-		if ( 'plugin_information' !== $accion || empty( $args->slug ) || UNCFI_SLUG !== $args->slug ) {
-			return $resultado;
+	public static function completar_ficha( $info ) {
+		if ( is_object( $info ) ) {
+			$info->tested       = empty( $info->tested ) ? self::WP_TESTED : $info->tested;
+			$info->requires     = empty( $info->requires ) ? '5.6' : $info->requires;
+			$info->requires_php = empty( $info->requires_php ) ? '7.0' : $info->requires_php;
 		}
-
-		$release = self::release();
-		if ( ! $release ) {
-			return $resultado;
-		}
-
-		return (object) array(
-			'name'          => 'Uncode Fix Icons',
-			'slug'          => UNCFI_SLUG,
-			'version'       => $release['version'],
-			'homepage'      => 'https://github.com/' . UNCFI_REPO,
-			'download_link' => $release['zip'],
-			'last_updated'  => $release['fecha'],
-			'sections'      => array(
-				'changelog' => wpautop( esc_html( $release['notas'] ) ),
-			),
-		);
-	}
-
-	/**
-	 * Asegura que la carpeta instalada se llame como el slug del plugin.
-	 *
-	 * El .zip del release ya trae `uncode-fix-icons/`, asi que normalmente no
-	 * hace nada. Es un cinturon de seguridad por si algun dia un .zip sale con
-	 * otro nombre de carpeta: WordPress lo tomaria por un plugin distinto.
-	 *
-	 * @param string      $source      Carpeta de origen.
-	 * @param string      $remote      Carpeta remota.
-	 * @param WP_Upgrader $upgrader    Instancia del upgrader.
-	 * @param array       $extra       Argumentos extra.
-	 * @return string|WP_Error
-	 */
-	public static function renombrar( $source, $remote, $upgrader, $extra = array() ) {
-		global $wp_filesystem;
-
-		if ( empty( $extra['plugin'] ) || plugin_basename( UNCFI_FILE ) !== $extra['plugin'] ) {
-			return $source;
-		}
-
-		if ( ! $wp_filesystem || basename( untrailingslashit( $source ) ) === UNCFI_SLUG ) {
-			return $source;
-		}
-
-		$destino = trailingslashit( dirname( untrailingslashit( $source ) ) ) . UNCFI_SLUG;
-
-		if ( $wp_filesystem->move( $source, $destino, true ) ) {
-			return trailingslashit( $destino );
-		}
-
-		return $source;
+		return $info;
 	}
 }

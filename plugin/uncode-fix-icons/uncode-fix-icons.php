@@ -3,7 +3,7 @@
  * Plugin Name:       Uncode Fix Icons
  * Plugin URI:        https://github.com/pablotll/uncode-fix-icons
  * Description:       Arregla los iconos que salen equivocados cuando el tema Uncode convive con un plugin que carga Font Awesome. Sin child theme y sin FTP.
- * Version:           1.0.1
+ * Version:           1.1.0
  * Requires at least: 5.6
  * Requires PHP:      7.0
  * Author:            Pablo Torres
@@ -12,17 +12,22 @@
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       uncode-fix-icons
  * Domain Path:       /languages
+ * Update URI:        https://github.com/pablotll/uncode-fix-icons
  *
  * @package UncodeFixIcons
  */
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'UNCFI_VERSION', '1.0.1' );
+define( 'UNCFI_VERSION', '1.1.0' );
 define( 'UNCFI_FILE', __FILE__ );
 define( 'UNCFI_DIR', plugin_dir_path( __FILE__ ) );
 define( 'UNCFI_SLUG', 'uncode-fix-icons' );
-define( 'UNCFI_REPO', 'pablotll/uncode-fix-icons' );
+
+// Composer solo trae plugin-update-checker. Opcional en desarrollo.
+if ( file_exists( UNCFI_DIR . 'vendor/autoload.php' ) ) {
+	require_once UNCFI_DIR . 'vendor/autoload.php';
+}
 
 require_once UNCFI_DIR . 'includes/class-uncfi-collisions.php';
 require_once UNCFI_DIR . 'includes/class-uncfi-admin.php';

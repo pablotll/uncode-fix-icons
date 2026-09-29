@@ -296,8 +296,12 @@ python3 scripts/generar-colisiones.py ruta/a/all.css ruta/a/uncode-icons.css > d
 Armar el `.zip`:
 
 ```bash
-./scripts/empaquetar.sh    # deja build/uncode-fix-icons.zip
+./scripts/empaquetar.sh    # deja build/uncode-fix-icons.zip (necesita composer)
 ```
+
+Publicar una versión: `git tag vX.Y.Z && git push origin vX.Y.Z`. El workflow de
+GitHub arma el `.zip` y crea el release; los tags con sufijo (`v1.2.0-rc.1`) salen
+como prerelease y no llegan a los sitios. Detalle en `docs/plugin.md`.
 
 ---
 

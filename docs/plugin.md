@@ -74,6 +74,51 @@ tratan como entrada no confiable:
 Las dos las encontró una revisión adversarial del código, la segunda reproducida en
 vivo.
 
+## Actualizaciones
+
+Desde la 1.1.0 el actualizador es [Plugin Update Checker](https://github.com/YahnisElsts/plugin-update-checker)
+(PUC, vía Composer). La 1.0.x tenía uno propio de ~200 líneas.
+
+**Publicar una versión** es `git tag vX.Y.Z && git push origin vX.Y.Z`. El workflow
+`.github/workflows/release.yml` revisa la sintaxis, corre `scripts/empaquetar.sh` con
+la versión del tag y crea el release con `uncode-fix-icons.zip` adjunto. La versión la
+manda el **tag**: el script la inyecta en el encabezado `Version:` y en
+`UNCFI_VERSION`. En el repo el encabezado lleva la versión estable a la que se apunta.
+Un tag con sufijo (`v1.2.0-rc.1`) sale como prerelease, con el sufijo también en el
+encabezado. Así `version_compare` lo ordena debajo del estable y no "quema" el número
+limpio.
+
+Tres cosas que no se deben cambiar:
+
+- **Solo la estrategia del último release.** `REQUIRE_RELEASE_ASSETS` no basta: si el
+  último release no trae el `.zip`, PUC pasa a la estrategia "último tag", y esa
+  descarga el zipball de la raíz del repo. Ahí el plugin vive en
+  `plugin/uncode-fix-icons/`, así que se instalaría sin encabezado y quedaría
+  desactivado, que es el mismo bug que corrigió la 1.0.1. `solo_releases()` quita las
+  estrategias de tag y de rama. Se probó contra el repo real: sin ese filtro, PUC
+  ofrecía `zipball/refs/tags/v1.0.1`.
+- **El asset se llama exactamente `uncode-fix-icons.zip`.** El actualizador nativo de
+  la 1.0.x solo acepta ese nombre, y es el que instala la primera versión con PUC en
+  los sitios. Si cambia, esos sitios se quedan varados en la 1.0.x.
+- **`vendor/` va dentro del `.zip`.** Si falta, el plugin sigue funcionando pero sin
+  actualizador (el `class_exists` lo apaga sin romper), y ese sitio ya no se entera
+  de ninguna versión nueva.
+
+PUC busca `uncode-fix-icons.php`, `readme.txt` y un changelog en la **raíz** del repo
+en ese tag. Como el plugin vive en una subcarpeta, no los encuentra y usa los datos del
+release: la versión sale del tag y el changelog de las notas del release. No causa
+ningún problema, solo algunas consultas que dan 404.
+
+**Con WP-CLI** (`wp plugin update --all`), PUC no consulta a GitHub dentro de
+`wp_update_plugins()`: usa lo que guardó su evento de cron (cada 12 horas) en la opción
+`external_updates-uncode-fix-icons`. Si un release recién publicado no aparece:
+
+```bash
+wp option delete external_updates-uncode-fix-icons && wp cron event run puc_cron_check_updates-uncode-fix-icons
+```
+
+Borrar transients no sirve.
+
 ## Cómo se probó
 
 WordPress 7.1.1 en Docker, Uncode 2.12.8 real, y un plugin stub que encola Font
@@ -118,6 +163,15 @@ Además:
 - **Actualizador contra el release real `v1.0.0`:** una copia marcada como 0.9.9 vio
   la 1.0.0 disponible, se actualizó sola descargando el `.zip` del release, quedó en
   la carpeta `uncode-fix-icons` y activa, y siguió corrigiendo los 7 íconos.
+- **Actualizador con PUC (1.1.0), 2026-09-29.** Tres pruebas en WordPress limpio:
+  1. *Transición:* la 1.0.1 con su actualizador nativo recibió un release
+     `1.1.0-rc.1` con el `.zip` nuevo, se actualizó con `wp plugin update` y quedó
+     activa en la carpeta `uncode-fix-icons` con `vendor/`.
+  2. *PUC contra la API real:* `tests/prueba-updater.php` confirma que el paquete es
+     el `.zip` adjunto, que no ofrece bajar de versión y que, si falta el `.zip`, no
+     ofrece nada.
+  3. *De punta a punta:* una copia marcada como 0.9.9 se actualizó a la 1.0.1 real con
+     `wp plugin update`, descargando `releases/download/v1.0.1/uncode-fix-icons.zip`.
 
 ## Limitaciones conocidas
 

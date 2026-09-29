@@ -12,3 +12,7 @@ __pycache__/
 
 # Comandos locales de Claude Code (3-tier-memory). No van al repo publico.
 .claude/
+
+# Dependencias de Composer: van en el .zip del release, no en el repo.
+# composer.lock SI se versiona: los releases deben ser reproducibles.
+plugin/uncode-fix-icons/vendor/

@@ -44,10 +44,12 @@ docker compose cp prueba-updater.php wp:/tmp/prueba-updater.php
 docker compose exec -T wp wp --allow-root --path=/var/www/html eval-file /tmp/prueba-updater.php
 ```
 
-Simula respuestas de la API de GitHub (sin `.zip` adjunto, con un `.zip` de otro
-nombre, con el correcto, con una versión más vieja) y comprueba que el plugin solo
-ofrezca actualizarse cuando hay un `.zip` válido y una versión más nueva. Al final
-consulta la API real del repo.
+Consulta la API real del repo con Plugin Update Checker. Comprueba que el paquete
+sea el `.zip` adjunto al release y no un zipball, y que no ofrezca bajar de versión.
+También comprueba que, si el release no trae el `.zip`, no ofrezca nada, y muestra
+qué ofrecería PUC sin el filtro de estrategias. Para simular un sitio atrasado,
+cambia la versión del plugin instalado a `0.9.9` y corre la prueba con `UFI_FALSA=1`
+(`docker compose exec -T -e UFI_FALSA=1 wp …`): entonces sí debe ofrecer actualizar.
 
 ## Orden inverso
 

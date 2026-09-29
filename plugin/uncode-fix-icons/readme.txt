@@ -4,7 +4,7 @@ Tags: uncode, font awesome, icons, fontawesome, geodirectory
 Requires at least: 5.6
 Tested up to: 7.1
 Requires PHP: 7.0
-Stable tag: 1.0.1
+Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -53,6 +53,10 @@ No lo arregla: los iconos que dependian de esa fuente se quedan sin ella. Cambia
 icono equivocado por un icono roto.
 
 == Changelog ==
+
+= 1.1.0 =
+* El actualizador ahora usa Plugin Update Checker. Sigue instalando solo el .zip adjunto al release, nunca el zipball del codigo fuente.
+* Las versiones se publican con un tag de git: el workflow de GitHub arma el .zip y crea el release. Los tags con sufijo (v1.2.0-rc.1) salen como prerelease y no llegan a los sitios.
 
 = 1.0.1 =
 * El actualizador ya no recurre al zipball automatico de GitHub cuando un release no trae el .zip adjunto. Ese respaldo instalaba el plugin en una carpeta equivocada y lo dejaba desactivado; ahora, sin .zip adjunto, simplemente no se ofrece la actualizacion.
