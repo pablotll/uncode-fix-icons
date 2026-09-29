@@ -3,7 +3,7 @@
  * Plugin Name:       Uncode Fix Icons
  * Plugin URI:        https://github.com/pablotll/uncode-fix-icons
  * Description:       Arregla los iconos que salen equivocados cuando el tema Uncode convive con un plugin que carga Font Awesome. Sin child theme y sin FTP.
- * Version:           1.1.0
+ * Version:           1.1.1
  * Requires at least: 5.6
  * Requires PHP:      7.0
  * Author:            Pablo Torres
@@ -19,7 +19,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'UNCFI_VERSION', '1.1.0' );
+define( 'UNCFI_VERSION', '1.1.1' );
 define( 'UNCFI_FILE', __FILE__ );
 define( 'UNCFI_DIR', plugin_dir_path( __FILE__ ) );
 define( 'UNCFI_SLUG', 'uncode-fix-icons' );
@@ -100,4 +100,8 @@ function uncfi_desactivar() {
 register_deactivation_hook( __FILE__, 'uncfi_desactivar' );
 
 UNCFI_Admin::init();
-UNCFI_Updater::init();
+
+// En plugins_loaded, no al incluir el archivo: should_run() llama current_user_can(),
+// que vive en pluggable.php, y WordPress lo carga DESPUES de incluir los plugins. La
+// 1.1.0 lo llamaba aqui y cada peticion a admin-ajax.php terminaba en error fatal.
+add_action( 'plugins_loaded', array( 'UNCFI_Updater', 'init' ) );

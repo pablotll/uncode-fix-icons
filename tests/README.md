@@ -33,6 +33,13 @@ Además confirma que las reglas salieron de **calcular** con tus hojas, no de la
 de respaldo. Ese detalle importa: con la tabla de respaldo los íconos también salen
 bien, así que medir solo los íconos no basta para saber que el motor funciona.
 
+## admin-ajax.php
+
+`prueba-ajax.sh` (lo corre `probar.sh`) pide `admin-ajax.php` como anónimo y como
+admin, sin acción y con una acción que nadie registró. Todo debe responder 400,
+nunca 500. Es la regresión de la 1.1.0, que tronaba en toda petición AJAX porque
+llamaba `current_user_can()` antes de que WordPress cargara `pluggable.php`.
+
 ## El actualizador
 
 `prueba-updater.php` prueba el actualizador por los dos lados, con el entorno

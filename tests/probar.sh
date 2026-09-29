@@ -68,6 +68,9 @@ docker compose cp "$RAIZ/build/uncode-fix-icons.zip" wp:/tmp/ufi.zip
 wp plugin install /tmp/ufi.zip --activate --force
 curl -s -o /dev/null "$URL/"   # primera carga: el plugin calcula y guarda
 
+echo "→ admin-ajax.php con el plugin (regresión de la 1.1.0)"
+./prueba-ajax.sh
+
 echo "→ Con el plugin"
 node medir.js "$URL/"
 wp option get uncfi_cache --format=json | node -e '

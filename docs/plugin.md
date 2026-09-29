@@ -172,6 +172,20 @@ Además:
      ofrece nada.
   3. *De punta a punta:* una copia marcada como 0.9.9 se actualizó a la 1.0.1 real con
      `wp plugin update`, descargando `releases/download/v1.0.1/uncode-fix-icons.zip`.
+- **admin-ajax.php con el plugin activo (1.1.1), 2026-09-29.** La 1.1.0 llamaba
+  `UNCFI_Updater::init()` al incluir el plugin; en AJAX, `should_run()` llega a
+  `current_user_can()`, que necesita `pluggable.php`, y WordPress lo carga *después*
+  de incluir los plugins. Resultado: error fatal y 500 en **toda** petición a
+  `admin-ajax.php` (búsquedas, formularios, TranslatePress, ShortPixel…), mientras
+  wp-admin y el front seguían bien. La 1.1.1 engancha el actualizador en
+  `plugins_loaded`. `tests/prueba-ajax.sh` (lo corre `probar.sh`) pide `admin-ajax.php`
+  como anónimo y como admin, sin acción y con una acción inexistente: todo debe dar 400.
+  Con el `.zip` real de la 1.1.0 da 500 en los cuatro casos, con el mismo fatal que en
+  producción; con la 1.1.1, 400. En un `wp-load` real se comprobó dónde queda
+  enganchado PUC: cron, WP-CLI, wp-admin y AJAX de admin sí; front y AJAX anónimo no
+  (el candado de `should_run()` se conserva). Escritorio → Actualizaciones y
+  `wp cron event run puc_cron_check_updates-uncode-fix-icons` detectan el release.
+  **Regla:** nada del plugin llama funciones de `pluggable.php` fuera de un hook.
 
 ## Limitaciones conocidas
 

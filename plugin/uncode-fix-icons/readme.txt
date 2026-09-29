@@ -4,7 +4,7 @@ Tags: uncode, font awesome, icons, fontawesome, geodirectory
 Requires at least: 5.6
 Tested up to: 7.1
 Requires PHP: 7.0
-Stable tag: 1.1.0
+Stable tag: 1.1.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -53,6 +53,9 @@ No lo arregla: los iconos que dependian de esa fuente se quedan sin ella. Cambia
 icono equivocado por un icono roto.
 
 == Changelog ==
+
+= 1.1.1 =
+* Corrige un error fatal de la 1.1.0: cualquier peticion a admin-ajax.php (busquedas, formularios, traducciones, optimizadores de imagen...) respondia 500. El actualizador se enganchaba antes de que WordPress cargara las funciones de usuarios; ahora arranca en plugins_loaded. Si tienes la 1.1.0, actualiza desde Escritorio > Actualizaciones.
 
 = 1.1.0 =
 * El actualizador ahora usa Plugin Update Checker. Sigue instalando solo el .zip adjunto al release, nunca el zipball del codigo fuente.
