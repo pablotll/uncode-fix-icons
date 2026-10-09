@@ -40,7 +40,9 @@ dos hojas que no se conocen.
 
 Le pasa a los íconos que ponen **otros plugins** —GeoDirectory y el resto de AyeCode
 son el caso más común, pero puede ser cualquiera que use los prefijos `fas`, `far` o
-`fab`—. Los íconos propios de Uncode se ven bien.
+`fab`—. Y si el plugin carga Font Awesome *después* de Uncode, le pasa al revés: los
+que salen mal son los íconos propios del tema (un TikTok que sale como engrane, una
+lupa que desaparece).
 
 ---
 
@@ -158,7 +160,9 @@ Si no puedes instalar plugins, copia el contenido de
 
 La diferencia con el plugin es que este bloque está fijo: se calculó con Font Awesome
 6.5.1 y Uncode 2.12. Si tu sitio usa otras versiones, puede que algún ícono siga
-saliendo mal.
+saliendo mal. **Con Font Awesome 6.6 o posterior no alcanza**: esa versión pisa todos
+los íconos del tema, no solo los que chocan; usa el plugin, o regenera el bloque con
+`scripts/generar-colisiones.py` contra tu hoja.
 
 ### Opción 3 — child theme
 
@@ -172,12 +176,16 @@ archivos y se pierde si cambias de child theme.
 La parte importante: **no trae una lista fija de las 128 clases**. Lee las hojas de
 *tu* sitio y calcula qué choca ahí.
 
-1. **Busca la hoja de Font Awesome** entre los estilos que tiene cargados tu sitio.
-   La reconoce por lo que tiene adentro, no por su nombre: cada plugin la llama y la
-   guarda distinto, y las rutas cambian entre versiones.
+1. **Busca la hoja de Font Awesome** entre los estilos que tu sitio de verdad imprime
+   en la página —no entre todos los registrados: hay plugins que registran un Font
+   Awesome viejo y nunca lo cargan—. La reconoce por lo que tiene adentro, no por su
+   nombre: cada plugin la llama y la guarda distinto, y las rutas cambian entre
+   versiones. Si viene de un CDN, la descarga para leerla.
 2. **La compara contra `uncode-icons.css`** (la del tema padre, así que funciona
-   igual con un child theme) y se queda con las clases que las dos definen con
-   caracteres distintos.
+   igual con un child theme) y arma reglas para los dos lados: le devuelve su carácter
+   a Font Awesome en los íconos con prefijo, y a Uncode en los suyos, para que no
+   importe cuál de las dos hojas cargue después. Con Font Awesome 6.6 o posterior
+   cubre todas las clases del tema (unas 1570), porque esa versión las pisa todas.
 3. **Guarda el resultado** y solo lo vuelve a calcular cuando cambia alguna de las
    dos hojas. Si actualizas Uncode o el plugin que trae Font Awesome, se recalcula
    solo.
@@ -251,6 +259,14 @@ navegador el carácter que de verdad se dibuja en pantalla:
 | `fa fa-tiktok` (del tema) | `\e92f` | `\e92f` | intacto |
 | `fa fa-clock` (del tema) | `\e072` | `\e072` | intacto |
 
+Y con Font Awesome cargando *después* de Uncode, que es como lo hace GeoDirectory:
+
+| Elemento | Sin el plugin | Con el plugin | |
+|---|---|---|---|
+| `fa fa-tiktok` (del tema) | `\e07b` (un engrane) | `\e92f` | ✅ corregido |
+| `fa fa-search3` (del tema), con FA 6.7 | vacío: desaparece | `\e088` | ✅ corregido |
+| íconos del tema | en negritas (peso 900) | peso normal | ✅ corregido |
+
 Además:
 
 - el CSS que calcula el plugin es idéntico al del script de referencia de este repo;
@@ -272,9 +288,10 @@ están corregidos.
 
 ## Limitaciones conocidas
 
-- **Probado con Font Awesome 6.5.1 y Uncode 2.12.** El plugin calcula contra las
-  hojas de tu sitio, así que debería funcionar con otras versiones, pero no lo he
-  probado.
+- **Probado con Font Awesome 6.5.1 y 6.7.2 y Uncode 2.12**, en pruebas y en un sitio
+  real con GeoDirectory (Font Awesome desde su CDN, cargado después de Uncode). Con
+  otras versiones debería funcionar, porque calcula contra las hojas de tu sitio, pero
+  no lo he probado.
 - **No se ha probado con una mezcla grande de plugins** (WooCommerce, Elementor,
   constructores de páginas). Si en tu sitio no funciona, abre un
   [issue](https://github.com/pablotll/uncode-fix-icons/issues) con lo que dice la

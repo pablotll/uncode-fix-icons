@@ -20,12 +20,14 @@ cuadro vacio — aunque el HTML sea correcto, este plugin lo arregla.
 fuente propia, pero solo fuerza la familia tipografica en `.fa`, no en `.fas`,
 `.far` ni `.fab`. Cuando otro plugin carga Font Awesome, un `<i class="fas fa-clock">`
 acaba pintandose con la FUENTE de Font Awesome y el CONTENT de Uncode. Salen dos
-iconos distintos mezclados, y el resultado es un glifo al azar.
+iconos distintos mezclados, y el resultado es un glifo al azar. Si el plugin carga
+Font Awesome DESPUES de Uncode, pasa al reves: se rompen los iconos del tema.
 
 **La solucion.** El plugin compara las dos hojas de tu sitio, detecta que clases
-chocan, y restaura el codepoint de Font Awesome solo cuando el elemento lleva un
-prefijo explicito — prefijos que Uncode nunca usa. Los iconos propios del tema no
-se tocan.
+chocan, y le devuelve su codepoint a cada lado: a Font Awesome cuando el elemento
+lleva un prefijo explicito (`fas`, `fab`...), que Uncode nunca usa, y a Uncode en sus
+propios iconos (`fa fa-...`). Funciona con cualquier orden de carga y con Font
+Awesome 6.6 o posterior.
 
 No necesitas child theme ni acceso FTP. No modifica ningun archivo del tema ni de
 otro plugin: solo añade CSS. Al desactivarlo no queda nada.
