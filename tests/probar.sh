@@ -55,6 +55,7 @@ trap 'rm -r "$TMP"' EXIT
 mkdir -p "$TMP/fa-provider/css" "$TMP/fa-provider/webfonts"
 cp fa-provider/fa-provider.php "$TMP/fa-provider/"
 curl -sf "$FA/css/all.css" -o "$TMP/fa-provider/css/all.css"
+curl -sf "https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.css" -o "$TMP/fa-provider/css/fa4.css"
 for f in fa-solid-900 fa-regular-400 fa-brands-400; do
 	curl -sf "$FA/webfonts/$f.woff2" -o "$TMP/fa-provider/webfonts/$f.woff2"
 done

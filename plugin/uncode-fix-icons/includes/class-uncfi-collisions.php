@@ -92,7 +92,7 @@ class UNCFI_Collisions {
 	}
 
 	/**
-	 * Busca la hoja de Font Awesome entre los estilos registrados.
+	 * Busca la hoja de Font Awesome entre los estilos que se van a imprimir.
 	 *
 	 * Se identifica por CONTENIDO, no por nombre. Buscar `fontawesome` en la
 	 * ruta parece obvio y falla callado: hay plugins que la sirven desde
@@ -100,7 +100,13 @@ class UNCFI_Collisions {
 	 * ademas los paths se mueven entre versiones — wpvr 9.1.3 movio el suyo a
 	 * `legacy/`. Lo unico estable es lo que la hoja trae dentro.
 	 *
-	 * Gana la que defina mas clases `.fa-*`, por si el sitio tiene varias.
+	 * Solo cuentan las hojas ENCOLADAS (y sus dependencias). Hasta la 1.2.0 se
+	 * recorrian todas las registradas, y un Font Awesome 4 local que un plugin
+	 * registra pero no imprime le ganaba al FA 6 remoto que si estaba en la
+	 * pagina: se calculaba contra una hoja que el navegador nunca ve.
+	 *
+	 * Gana la que defina mas clases `.fa-*`, por si el sitio tiene varias. Las
+	 * remotas compiten igual que las locales: se cuentan por HTTP, con cache.
 	 *
 	 * @return array{handle:string,src:string,path:string|false}|false
 	 */
@@ -110,32 +116,55 @@ class UNCFI_Collisions {
 			return false;
 		}
 
-		$mejor  = false;
-		$reglas = 0;
+		$mejor      = false;
+		$reglas     = 0;
+		$por_nombre = false;
 
-		foreach ( $styles->registered as $handle => $style ) {
+		foreach ( self::encoladas( $styles ) as $handle ) {
+			$style = $styles->registered[ $handle ];
 			if ( ! self::candidata( $handle, $style ) ) {
 				continue;
 			}
 
-			$ruta = self::url_a_ruta( (string) $style->src );
-			if ( ! $ruta ) {
-				// Sin archivo local solo podemos fiarnos del nombre; se guarda
-				// como ultimo recurso y se resuelve por HTTP mas adelante.
-				if ( ! $mejor && preg_match( '#font-?awesome#i', $handle . ' ' . $style->src ) ) {
-					$mejor = array( 'handle' => $handle, 'src' => (string) $style->src, 'path' => false );
-				}
-				continue;
-			}
+			$src  = (string) $style->src;
+			$ruta = self::url_a_ruta( $src );
+			$n    = $ruta ? self::contar_reglas_fa( $ruta ) : self::contar_reglas_remoto( $src );
 
-			$n = self::contar_reglas_fa( $ruta );
 			if ( $n > $reglas ) {
 				$reglas = $n;
-				$mejor  = array( 'handle' => $handle, 'src' => (string) $style->src, 'path' => $ruta );
+				$mejor  = array( 'handle' => $handle, 'src' => $src, 'path' => $ruta );
+			} elseif ( ! $ruta && ! $n && ! $por_nombre && preg_match( '#font-?awesome#i', $handle . ' ' . $src ) ) {
+				// Remota que no se pudo leer: solo queda fiarse del nombre, como
+				// ultimo recurso. `calcular()` volvera a intentarlo por HTTP.
+				$por_nombre = array( 'handle' => $handle, 'src' => $src, 'path' => false );
 			}
 		}
 
-		return $mejor;
+		return $mejor ? $mejor : $por_nombre;
+	}
+
+	/**
+	 * Handles que se van a imprimir: la cola y, recursivamente, sus dependencias.
+	 *
+	 * @param WP_Styles $styles Registro de estilos.
+	 * @return string[]
+	 */
+	private static function encoladas( $styles ) {
+		$pendientes = (array) $styles->queue;
+		$vistas     = array();
+
+		while ( $pendientes ) {
+			$handle = array_pop( $pendientes );
+			if ( isset( $vistas[ $handle ] ) || ! isset( $styles->registered[ $handle ] ) ) {
+				continue;
+			}
+			$vistas[ $handle ] = true;
+			foreach ( (array) $styles->registered[ $handle ]->deps as $dep ) {
+				$pendientes[] = $dep;
+			}
+		}
+
+		return array_keys( $vistas );
 	}
 
 	/**
@@ -175,7 +204,40 @@ class UNCFI_Collisions {
 		}
 
 		$css = @file_get_contents( $ruta, false, null, 0, 256 * KB_IN_BYTES ); // phpcs:ignore
-		if ( ! is_string( $css ) || false === stripos( $css, '.fa-' ) ) {
+		return is_string( $css ) ? self::contar_en( $css ) : 0;
+	}
+
+	/**
+	 * Lo mismo para una hoja en un CDN u otro host.
+	 *
+	 * `localizar_fontawesome()` corre en cada pagina, asi que el conteo se
+	 * guarda en un transient por URL: una semana si se pudo leer, una hora si
+	 * no, para no pedirla en cada visita mientras el CDN falla.
+	 *
+	 * @param string $url URL de la hoja.
+	 * @return int
+	 */
+	private static function contar_reglas_remoto( $url ) {
+		$llave = 'uncfi_remoto_' . md5( $url );
+		$n     = get_transient( $llave );
+
+		if ( false === $n ) {
+			$css = self::leer_remoto( $url );
+			$n   = self::contar_en( substr( $css, 0, 256 * KB_IN_BYTES ) );
+			set_transient( $llave, $n, $n ? WEEK_IN_SECONDS : HOUR_IN_SECONDS );
+		}
+
+		return (int) $n;
+	}
+
+	/**
+	 * Cuenta las reglas de codepoint `.fa-*` de una hoja ya leida.
+	 *
+	 * @param string $css Contenido de la hoja.
+	 * @return int
+	 */
+	private static function contar_en( $css ) {
+		if ( false === stripos( $css, '.fa-' ) ) {
 			return 0;
 		}
 

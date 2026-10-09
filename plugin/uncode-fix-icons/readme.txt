@@ -4,7 +4,7 @@ Tags: uncode, font awesome, icons, fontawesome, geodirectory
 Requires at least: 5.6
 Tested up to: 7.1
 Requires PHP: 7.0
-Stable tag: 1.2.0
+Stable tag: 1.2.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -53,6 +53,10 @@ No lo arregla: los iconos que dependian de esa fuente se quedan sin ella. Cambia
 icono equivocado por un icono roto.
 
 == Changelog ==
+
+= 1.2.1 =
+* Busca la hoja de Font Awesome solo entre las que de verdad se imprimen (encoladas y sus dependencias). La 1.2.0 podia elegir un Font Awesome 4 que otro plugin registra pero no carga, y calcular contra una hoja que el navegador nunca ve.
+* Una hoja de Font Awesome servida desde un CDN ya compite igual que una local: se cuentan sus reglas por HTTP (con cache de una semana).
 
 = 1.2.0 =
 * Ahora tambien protege los iconos propios del tema (`<i class="fa fa-tiktok">`). Si un plugin encola Font Awesome DESPUES de Uncode (GeoDirectory y los demas de AyeCode lo hacen), le ganaba el codepoint de Font Awesome y el icono del tema salia como otro glifo.

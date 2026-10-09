@@ -75,7 +75,9 @@ Con el entorno ya levantado:
 
 Repite la medición con Font Awesome 6.5.1 y 6.7.2, encolado antes de Uncode (como WPVR)
 o después, en prioridad 5000 (como GeoDirectory), y servido desde el sitio o desde
-use.fontawesome.com. En cada combinación exige además que el motor haya calculado.
+use.fontawesome.com. En cada combinación exige además que el motor haya calculado, y
+contra la hoja que de verdad se imprime: el proveedor también *registra* (sin encolarlo)
+un Font Awesome 4 local, como hacen algunos plugins, y ese nunca debe ganar.
 Con el plugin desactivado sirve para ver los bugs: falla en las 8.
 
 `probar.sh` acepta `FA_VER=6.7.2` para la corrida principal. Las constantes que mueve

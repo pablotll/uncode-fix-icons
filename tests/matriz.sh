@@ -35,7 +35,8 @@ for ver in 6.5.1 6.7.2; do
 			wp eval 'if ( ! class_exists( "UNCFI_Collisions" ) ) { echo "  plugin inactivo\n"; exit( 1 ); }
 				$e = UNCFI_Collisions::cacheado();
 				printf("  motor: %s | %d reglas | hoja FA: %s\n", $e["source"], $e["count"], $e["fa"]);
-				exit( "calculado" === $e["source"] ? 0 : 1 );' || { echo "  XX el motor no calculó"; fallos=$((fallos+1)); }
+				exit( "calculado" === $e["source"] && "fa-provider" === $e["fa"] ? 0 : 1 );' \
+				|| { echo "  XX el motor no calculó contra la hoja que se imprime"; fallos=$((fallos+1)); }
 			node medir.js "$URL" | sed 's/^/  /' || fallos=$((fallos+1))
 		done
 	done

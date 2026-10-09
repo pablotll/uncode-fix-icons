@@ -17,6 +17,10 @@ add_action( 'wp_enqueue_scripts', function () {
 		? "https://use.fontawesome.com/releases/v$ver/css/all.css"
 		: plugin_dir_url( __FILE__ ) . 'css/all.css';
 	wp_enqueue_style( 'fa-provider', $src, array(), $ver );
+
+	// Trampa: un Font Awesome 4 local que se REGISTRA pero no se encola, como el
+	// de Frontend Publishing Pro. La 1.2.0 lo elegia por encima del FA remoto.
+	wp_register_style( 'fa-trampa', plugin_dir_url( __FILE__ ) . 'css/fa4.css', array(), '4.7.0' );
 }, defined( 'UFI_FA_DESPUES' ) && UFI_FA_DESPUES ? 5000 : 5 );
 
 // Consumidores con prefijo explicito (t-*) e iconos propios del tema (u-*).

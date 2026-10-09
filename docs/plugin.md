@@ -50,7 +50,11 @@ de las hojas encoladas).
 4. **Si no puede leer alguna de las dos hojas** (CDN inaccesible, permisos), usa la
    tabla de respaldo de `data/fallback-collisions.php` y **lo dice** en la pantalla de
    estado, en vez de fingir que calculó.
-5. **Arma dos juegos de reglas**, los dos con especificidad (0,2,1) contra el (0,1,1)
+5. **Solo cuentan las hojas encoladas** (y sus dependencias), no todas las
+   registradas: en un sitio real, un Font Awesome 4 local que otro plugin registraba
+   sin imprimir le ganaba al FA 6 remoto de GeoDirectory (1.2.0). Las remotas compiten
+   igual que las locales: se cuentan por HTTP, con un transient de una semana por URL.
+6. **Arma dos juegos de reglas**, los dos con especificidad (0,2,1) contra el (0,1,1)
    de ambas hojas, así que ganan con cualquier orden de carga:
    - **Lado Font Awesome:** `:is(.fas,.far,…).fa-x::before` con el codepoint de FA,
      por cada clase en colisión.
@@ -61,7 +65,7 @@ de las hojas encoladas).
      genérica `.fa::before{content:var(--fa)}` pisa cualquier ícono `.fa`, choque de
      nombre o no. Si hay hoja de FA pero no se pudo leer, también van todas: no
      sabemos su versión.
-6. **Encola el CSS** al final de `wp_enqueue_scripts` (`PHP_INT_MAX`). Tiene que ser
+7. **Encola el CSS** al final de `wp_enqueue_scripts` (`PHP_INT_MAX`). Tiene que ser
    tarde para *ver* la hoja de Font Awesome: el de AyeCode (GeoDirectory) la registra
    en prioridad 5000, y con la 100 de la 1.1.x el plugin no la encontraba y caía al
    respaldo.
