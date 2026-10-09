@@ -50,9 +50,21 @@ de las hojas encoladas).
 4. **Si no puede leer alguna de las dos hojas** (CDN inaccesible, permisos), usa la
    tabla de respaldo de `data/fallback-collisions.php` y **lo dice** en la pantalla de
    estado, en vez de fingir que calculó.
-5. **Encola el CSS** en `wp_enqueue_scripts` con prioridad 100. El orden no es
-   crítico: la especificidad (0,2,1 contra 0,1,1) hace que gane aunque se imprima
-   antes.
+5. **Arma dos juegos de reglas**, los dos con especificidad (0,2,1) contra el (0,1,1)
+   de ambas hojas, así que ganan con cualquier orden de carga:
+   - **Lado Font Awesome:** `:is(.fas,.far,…).fa-x::before` con el codepoint de FA,
+     por cada clase en colisión.
+   - **Lado Uncode:** `.fa.fa-x::before` con el codepoint del tema, más
+     `.fa:not(.fas,…){font-weight:normal}` para deshacer la negrita de FA. Con FA
+     ≤ 6.5 basta con las clases en colisión. Con FA ≥ 6.6 (la hoja trae
+     `var(--fa)`) van **todas** las clases de Uncode, unas 1570, porque su regla
+     genérica `.fa::before{content:var(--fa)}` pisa cualquier ícono `.fa`, choque de
+     nombre o no. Si hay hoja de FA pero no se pudo leer, también van todas: no
+     sabemos su versión.
+6. **Encola el CSS** al final de `wp_enqueue_scripts` (`PHP_INT_MAX`). Tiene que ser
+   tarde para *ver* la hoja de Font Awesome: el de AyeCode (GeoDirectory) la registra
+   en prioridad 5000, y con la 100 de la 1.1.x el plugin no la encontraba y caía al
+   respaldo.
 
 La pantalla de estado **solo lee** lo que ya se calculó en el front. Una versión
 anterior disparaba ahí `do_action('wp_enqueue_scripts')` para poder encontrar la hoja
@@ -144,10 +156,11 @@ Además:
   `scripts/generar-colisiones.py` sobre esas mismas dos hojas.
 - **Recalcula solo:** al modificar `uncode-icons.css` para que `fa-clock` dejara de
   colisionar, el plugin pasó de 128 a 127 reglas y sacó esa clase, sin intervención.
-- **Orden invertido** (Font Awesome cargando *después* de Uncode): las mediciones con
-  y sin el plugin son idénticas. Es exactamente neutral ahí — no ayuda, pero tampoco
-  estorba. De paso confirma por qué reordenar las hojas no es la solución: en ese
-  escenario se rompen los iconos propios del tema.
+- **Orden invertido** (Font Awesome cargando *después* de Uncode, como GeoDirectory):
+  hasta la 1.1.x el plugin era neutral ahí y los iconos propios del tema se rompían.
+  Desde la 1.2.0 los cubre. `tests/matriz.sh` mide FA 6.5.1 y 6.7.2, antes y después
+  de Uncode, servido local y desde use.fontawesome.com: sin el plugin fallan las 8
+  combinaciones; con él, 11/11 íconos en las 8 y el motor calculando en todas.
 - **Tema que no es Uncode:** cero reglas emitidas, y un aviso en el escritorio.
 - **Instalación desde `.zip`** vía la pantalla de subir plugin, con `WP_DEBUG` y
   `WP_DEBUG_LOG` activos: `debug.log` vacío, sin errores ni warnings.

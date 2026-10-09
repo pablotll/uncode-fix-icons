@@ -1,26 +1,29 @@
 /* ------------------------------------------------------------------
-   uncode-fa-collisions.css — 128 overrides
+   uncode-fa-collisions.css — 128 + 128 overrides (Font Awesome 6.5.1)
 
    Problema: cuando un plugin encola Font Awesome 5/6 en un sitio con el
-   tema Uncode, los iconos con prefijo explicito (`<i class="fas fa-clock">`)
-   salen como glifos que no tienen nada que ver. Uncode carga despues
-   `library/css/uncode-icons.css`, que redefine ~1570 clases `.fa-*` con los
-   codepoints de su fuente propia ('uncodeicon'), pero solo fuerza la
-   font-family en `.fa` — no en `.fas` / `.far` / `.fab` / `.fa-solid`.
-   Resultado: la FUENTE la pone Font Awesome y el CONTENT lo pone Uncode.
-   Para `fa-clock` eso da \e072, que en FA6 Solid es `fa-toilet-paper-slash`.
+   tema Uncode, las dos hojas definen las mismas clases `.fa-*` con
+   codepoints distintos y la misma especificidad: gana la que cargue al
+   final, y el otro lado sale con glifos que no tienen nada que ver.
+   - FA antes de Uncode: `<i class="fas fa-clock">` sale \e072
+     (`fa-toilet-paper-slash` en FA6 Solid) en vez del reloj.
+   - FA despues de Uncode: `<i class="fa fa-tiktok">` del tema sale con el
+     codepoint de FA dibujado en la fuente de Uncode (un engrane).
 
-   Solucion: restaurar el codepoint de Font Awesome solo cuando el elemento
-   lleva prefijo explicito FA5/6, que Uncode nunca usa. Especificidad 0,2,0
-   contra el 0,1,1 de Uncode: gana sin `!important`. Los iconos propios del
-   tema (`<i class="fa fa-tiktok">`) no se tocan.
+   Solucion, valida con cualquier orden de hojas y sin `!important`:
+   1. Lado FA: el codepoint de FA solo cuando el elemento lleva prefijo
+      explicito FA5/6 (`.fas`, `.fab`...), que Uncode nunca usa.
+   2. Lado Uncode: el codepoint del tema en `.fa.fa-x`, y una regla que
+      deshace el `.fa{font-weight:900}` de FA en los iconos del tema.
+   Ambos son (0,2,1) contra el (0,1,1) de las dos hojas.
+
+   OJO: este bloque es para FA <= 6.5. FA >= 6.6 trae ademas
+   `.fa::before{content:var(--fa)}`, que pisa TODOS los iconos del tema;
+   para esa version regeneralo (el script emite entonces las ~1570 clases
+   de Uncode) o usa el plugin, que lo detecta solo.
 
    Generado comparando Font Awesome 6.5.1 contra uncode-icons.css de Uncode
-   2.12.7. Reverificado el 2026-09-20 contra Uncode 2.12.8 + WPVR 9.1.3
-   (que sigue trayendo FA 6.5.1): las 128 reglas son identicas.
-
-   Regenerar con scripts/generar-colisiones.py si Font Awesome o Uncode
-   suben de version. Ver docs/causa-raiz-y-diagnostico.md.
+   2.12.8 con scripts/generar-colisiones.py. Ver docs/causa-raiz-y-diagnostico.md.
    ------------------------------------------------------------------ */
 :is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-asterisk::before{content:"\2a"}
 :is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-at::before{content:"\40"}
@@ -150,3 +153,132 @@
 :is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-wheelchair-alt::before{content:"\e2ce"}
 :is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-window-close::before{content:"\f410"}
 :is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-youtube-square::before{content:"\f431"}
+.fa:not(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic){font-weight:normal}
+.fa.fa-asterisk::before{content:"\f069"}
+.fa.fa-at::before{content:"\f1fa"}
+.fa.fa-audible::before{content:"\e90b"}
+.fa.fa-backspace::before{content:"\e623"}
+.fa.fa-battery::before{content:"\e0ad"}
+.fa.fa-battery-2::before{content:"\f242"}
+.fa.fa-battery-3::before{content:"\f241"}
+.fa.fa-battery-4::before{content:"\f240"}
+.fa.fa-battery-full::before{content:"\e6c3"}
+.fa.fa-bitcoin::before{content:"\f15a"}
+.fa.fa-book-open::before{content:"\e00b"}
+.fa.fa-box::before{content:"\e0b3"}
+.fa.fa-brush::before{content:"\e6ce"}
+.fa.fa-calendar::before{content:"\f073"}
+.fa.fa-cancel::before{content:"\e622"}
+.fa.fa-chart-area::before{content:"\e634"}
+.fa.fa-chart-bar::before{content:"\e633"}
+.fa.fa-chart-line::before{content:"\e632"}
+.fa.fa-chart-pie::before{content:"\e631"}
+.fa.fa-circle-check::before{content:"\e08e"}
+.fa.fa-circle-minus::before{content:"\e08d"}
+.fa.fa-circle-plus::before{content:"\e08c"}
+.fa.fa-clipboard::before{content:"\f0ea"}
+.fa.fa-clock::before{content:"\e072"}
+.fa.fa-code-fork::before{content:"\f126"}
+.fa.fa-commenting::before{content:"\f27a"}
+.fa.fa-credit-card-alt::before{content:"\f283"}
+.fa.fa-cross::before{content:"\e117"}
+.fa.fa-cutlery::before{content:"\f0f5"}
+.fa.fa-dashboard::before{content:"\f0e4"}
+.fa.fa-desktop::before{content:"\f108"}
+.fa.fa-dice::before{content:"\e812"}
+.fa.fa-directions::before{content:"\e6c2"}
+.fa.fa-discord::before{content:"\e945"}
+.fa.fa-divide::before{content:"\e605"}
+.fa.fa-dollar::before{content:"\f155"}
+.fa.fa-earth::before{content:"\e853"}
+.fa.fa-ebay::before{content:"\e910"}
+.fa.fa-ellipsis::before{content:"\e129"}
+.fa.fa-equals::before{content:"\e604"}
+.fa.fa-exclamation::before{content:"\f12a"}
+.fa.fa-facebook-f::before{content:"\f09a"}
+.fa.fa-feather::before{content:"\e733"}
+.fa.fa-flipboard::before{content:"\e914"}
+.fa.fa-goodreads::before{content:"\e917"}
+.fa.fa-google-plus::before{content:"\f0d5"}
+.fa.fa-hand::before{content:"\e8a5"}
+.fa.fa-hashtag::before{content:"\f292"}
+.fa.fa-heart-pulse::before{content:"\e840"}
+.fa.fa-hotel::before{content:"\f236"}
+.fa.fa-hourglass::before{content:"\e01f"}
+.fa.fa-infinity::before{content:"\e637"}
+.fa.fa-inr::before{content:"\f156"}
+.fa.fa-instagram-square::before{content:"\e944"}
+.fa.fa-keyboard::before{content:"\e837"}
+.fa.fa-lightbulb::before{content:"\e030"}
+.fa.fa-linkedin::before{content:"\f0e1"}
+.fa.fa-location::before{content:"\e0aa"}
+.fa.fa-lock-open::before{content:"\e629"}
+.fa.fa-magnifying-glass::before{content:"\e037"}
+.fa.fa-mail-reply::before{content:"\f112"}
+.fa.fa-map-pin::before{content:"\e047"}
+.fa.fa-maximize::before{content:"\e112"}
+.fa.fa-message::before{content:"\e687"}
+.fa.fa-minimize::before{content:"\e113"}
+.fa.fa-mobile::before{content:"\f10b"}
+.fa.fa-mobile-phone::before{content:"\f10b"}
+.fa.fa-moon::before{content:"\e0a1"}
+.fa.fa-newspaper::before{content:"\e009"}
+.fa.fa-paintbrush::before{content:"\e036"}
+.fa.fa-pen::before{content:"\e6d1"}
+.fa.fa-pencil::before{content:"\f040"}
+.fa.fa-percent::before{content:"\f295"}
+.fa.fa-plus::before{content:"\f067"}
+.fa.fa-poop::before{content:"\e806"}
+.fa.fa-question::before{content:"\f128"}
+.fa.fa-redo::before{content:"\e861"}
+.fa.fa-reorder::before{content:"\f0c9"}
+.fa.fa-repeat::before{content:"\f01e"}
+.fa.fa-reply::before{content:"\f112"}
+.fa.fa-ribbon::before{content:"\e06d"}
+.fa.fa-rotate-left::before{content:"\f0e2"}
+.fa.fa-rotate-right::before{content:"\f01e"}
+.fa.fa-rss::before{content:"\e611"}
+.fa.fa-scissors::before{content:"\e63d"}
+.fa.fa-shirt::before{content:"\e82c"}
+.fa.fa-shopping-bag::before{content:"\e6f2"}
+.fa.fa-shuffle::before{content:"\e09d"}
+.fa.fa-smile::before{content:"\e854"}
+.fa.fa-snapchat-ghost::before{content:"\f2ac"}
+.fa.fa-sort-alpha-desc::before{content:"\f15e"}
+.fa.fa-sort-amount-desc::before{content:"\f161"}
+.fa.fa-sort-numeric-desc::before{content:"\f163"}
+.fa.fa-spell-check::before{content:"\e838"}
+.fa.fa-spoon::before{content:"\f1b1"}
+.fa.fa-square-check::before{content:"\e092"}
+.fa.fa-square-minus::before{content:"\e091"}
+.fa.fa-square-plus::before{content:"\e090"}
+.fa.fa-square-x-twitter::before{content:"\e943"}
+.fa.fa-stopwatch::before{content:"\e6fa"}
+.fa.fa-store::before{content:"\e82d"}
+.fa.fa-sun::before{content:"\e0a4"}
+.fa.fa-sync::before{content:"\e862"}
+.fa.fa-tablet::before{content:"\f10a"}
+.fa.fa-tachometer::before{content:"\f0e4"}
+.fa.fa-thermometer::before{content:"\e0a2"}
+.fa.fa-threads::before{content:"\e940"}
+.fa.fa-tiktok::before{content:"\e92f"}
+.fa.fa-times::before{content:"\e600"}
+.fa.fa-times-rectangle::before{content:"\f2d3"}
+.fa.fa-toolbox::before{content:"\e014"}
+.fa.fa-tools::before{content:"\e033"}
+.fa.fa-transgender::before{content:"\f224"}
+.fa.fa-try::before{content:"\f195"}
+.fa.fa-turkish-lira::before{content:"\f195"}
+.fa.fa-usd::before{content:"\f155"}
+.fa.fa-viber::before{content:"\e933"}
+.fa.fa-video::before{content:"\e076"}
+.fa.fa-vimeo::before{content:"\f27d"}
+.fa.fa-volume-high::before{content:"\e85a"}
+.fa.fa-volume-low::before{content:"\e85c"}
+.fa.fa-volume-mute::before{content:"\e722"}
+.fa.fa-wallet::before{content:"\e016"}
+.fa.fa-warning::before{content:"\e626"}
+.fa.fa-waze::before{content:"\e938"}
+.fa.fa-wheelchair-alt::before{content:"\f29b"}
+.fa.fa-window-close::before{content:"\f2d3"}
+.fa.fa-youtube-square::before{content:"\f166"}

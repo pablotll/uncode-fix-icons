@@ -26,8 +26,15 @@ Primero mide **sin** el plugin, para que veas el bug, y luego **con** él:
 | `fas fa-times` | `\f00d` | |
 | `fab fa-facebook-f` | `\f39e` | |
 | `fas fa-search` | `\f002` | no choca: igual con y sin el plugin |
-| `fa fa-tiktok` | `\e92f` | ícono del tema: el plugin no lo toca |
-| `fa fa-clock` | `\e072` | ícono del tema: el plugin no lo toca |
+| `fab fa-tiktok` | `\e07b` | |
+| `fa fa-tiktok` | `\e92f` | ícono del tema; se rompe si FA carga después |
+| `fa fa-clock` | `\e072` | ícono del tema |
+| `fa fa-search3` | `\e088` | ícono del tema que FA no tiene; con FA ≥ 6.6 desaparece |
+| `fa fa-twitter-x-fa` | `\e942` | ídem |
+| `fa fa-instagram` | `\f16d` | mismo codepoint en los dos |
+
+En los íconos del tema también comprueba el peso: 400, sin la negrita sintética que
+pone `.fa{font-weight:900}` de Font Awesome.
 
 Además confirma que las reglas salieron de **calcular** con tus hojas, no de la tabla
 de respaldo. Ese detalle importa: con la tabla de respaldo los íconos también salen
@@ -58,7 +65,19 @@ qué ofrecería PUC sin el filtro de estrategias. Para simular un sitio atrasado
 cambia la versión del plugin instalado a `0.9.9` y corre la prueba con `UFI_FALSA=1`
 (`docker compose exec -T -e UFI_FALSA=1 wp …`): entonces sí debe ofrecer actualizar.
 
-## Orden inverso
+## Matriz: versiones, orden y CDN
 
-Para probar el orden inverso (Font Awesome cargando después de Uncode), agrega
-`define('UFI_FA_DESPUES', true);` al `wp-config.php` del contenedor.
+Con el entorno ya levantado:
+
+```bash
+./tests/matriz.sh
+```
+
+Repite la medición con Font Awesome 6.5.1 y 6.7.2, encolado antes de Uncode (como WPVR)
+o después, en prioridad 5000 (como GeoDirectory), y servido desde el sitio o desde
+use.fontawesome.com. En cada combinación exige además que el motor haya calculado.
+Con el plugin desactivado sirve para ver los bugs: falla en las 8.
+
+`probar.sh` acepta `FA_VER=6.7.2` para la corrida principal. Las constantes que mueve
+la matriz (`UFI_FA_VER`, `UFI_FA_DESPUES`, `UFI_FA_REMOTO`) quedan en el
+`wp-config.php` del contenedor.

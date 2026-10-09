@@ -51,6 +51,23 @@ Es lo primero que uno intenta y no funciona, en ninguna de las dos direcciones:
 No hay un orden correcto porque ambas hojas reclaman el mismo namespace completo. La
 única salida limpia es **acotar por prefijo**, que es lo que hace este fix.
 
+Y el orden no lo controlas tú: lo decide cada plugin. WPVR encola Font Awesome antes
+de Uncode; GeoDirectory (AyeCode) lo encola en prioridad 5000, después. Por eso el fix
+cubre los dos lados.
+
+### Font Awesome 6.6 o posterior
+
+FA 6.6 cambió el formato: cada clase ya no trae su `content`, sino una variable
+(`.fa-tiktok{--fa:"\e07b"}`), y una sola regla la pinta:
+
+```css
+.fa::before, .fas::before, .fab::before /* … */ { content: var(--fa); }
+```
+
+Esa regla incluye `.fa`, la clase que usa Uncode, así que si FA carga después pisa
+**todos** los íconos del tema: los que FA también tiene salen con su codepoint, y los
+que no (`fa-search3`, `fa-twitter-x-fa`) se quedan sin `--fa` y desaparecen.
+
 ## La solución
 
 Una regla por cada clase en colisión, que restaura el codepoint de Font Awesome
@@ -61,8 +78,22 @@ usa:
 :is(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic).fa-clock::before{content:"\f017"}
 ```
 
-Especificidad **0,2,0** (dos clases) contra el **0,1,1** de `.fa-clock:before` de
-Uncode. Gana sin `!important` y sin tocar nada del tema.
+Especificidad **0,2,1** contra el **0,1,1** de `.fa-clock:before` de Uncode. Gana sin
+`!important` y sin tocar nada del tema.
+
+Y el espejo, para los íconos del tema cuando Font Awesome carga después:
+
+```css
+.fa:not(.fas,.far,.fab,.fa-solid,.fa-regular,.fa-brands,.fa-classic){font-weight:normal}
+.fa.fa-tiktok::before{content:"\e92f"}
+```
+
+También **0,2,1**, contra el `.fa-tiktok::before` y el `.fa::before` de FA. No
+necesita excluir los prefijos de FA: Uncode fuerza `font-family:'uncodeicon'
+!important` en `.fa`, así que un elemento con `.fa` nunca se dibuja con la fuente de
+FA, lleve o no `.fas`. La regla de `font-weight` deshace el `.fa{font-weight:900}` de
+FA, que dibujaría los íconos del tema con negrita sintética. Con FA ≤ 6.5 hacen falta
+solo las clases en colisión; con FA ≥ 6.6, todas las de Uncode.
 
 El bloque completo está en [`dist/uncode-fa-collisions.css`](../dist/uncode-fa-collisions.css).
 Se aplica pegándolo **al final** del `style.css` del child theme, que carga después

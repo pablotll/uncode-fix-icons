@@ -3,7 +3,7 @@
  * Plugin Name:       Uncode Fix Icons
  * Plugin URI:        https://github.com/pablotll/uncode-fix-icons
  * Description:       Arregla los iconos que salen equivocados cuando el tema Uncode convive con un plugin que carga Font Awesome. Sin child theme y sin FTP.
- * Version:           1.1.1
+ * Version:           1.2.0
  * Requires at least: 5.6
  * Requires PHP:      7.0
  * Author:            Pablo Torres
@@ -19,7 +19,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'UNCFI_VERSION', '1.1.1' );
+define( 'UNCFI_VERSION', '1.2.0' );
 define( 'UNCFI_FILE', __FILE__ );
 define( 'UNCFI_DIR', plugin_dir_path( __FILE__ ) );
 define( 'UNCFI_SLUG', 'uncode-fix-icons' );
@@ -54,14 +54,16 @@ function uncfi_uncode_activo() {
 /**
  * Inyecta el bloque de overrides.
  *
- * Prioridad 100 para que corra despues de que los demas plugins hayan
- * registrado sus hojas — necesitamos ver cual es la de Font Awesome.
+ * Corre al final de `wp_enqueue_scripts` porque necesita ver la hoja de Font
+ * Awesome ya registrada, y hay plugins que la registran tarde: el de AyeCode
+ * (GeoDirectory, UsersWP) lo hace en prioridad 5000. Con la prioridad 100 de
+ * la 1.1.x no la veia y caia a la tabla de respaldo.
  *
- * El orden de impresion no es critico: las reglas tienen especificidad 0,2,0
- * contra el 0,1,1 de Uncode, asi que ganan aunque se impriman antes. La
- * dependencia de `uncode-icons` es un cinturon de seguridad, y se agrega solo
- * si ese handle existe: declarar una dependencia inexistente haria que
- * WordPress no imprimiera nada.
+ * El orden de impresion no es critico: las reglas le ganan por especificidad
+ * a las de Uncode y a las de Font Awesome, asi que da igual quien cargue
+ * antes. La dependencia de `uncode-icons` es un cinturon de seguridad, y se
+ * agrega solo si ese handle existe: declarar una dependencia inexistente haria
+ * que WordPress no imprimiera nada.
  */
 function uncfi_enqueue() {
 	if ( ! uncfi_uncode_activo() ) {
@@ -80,7 +82,7 @@ function uncfi_enqueue() {
 	wp_enqueue_style( 'uncfi-overrides' );
 	wp_add_inline_style( 'uncfi-overrides', $estado['css'] );
 }
-add_action( 'wp_enqueue_scripts', 'uncfi_enqueue', 100 );
+add_action( 'wp_enqueue_scripts', 'uncfi_enqueue', PHP_INT_MAX );
 
 /**
  * Recalcula al activar, y cada vez que cambie el tema o se actualice algo:

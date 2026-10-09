@@ -92,7 +92,7 @@ exactamente igual.
 ### Lo que no funciona
 
 - **Cambiar el orden de las hojas.** Si Font Awesome carga después, se rompen los
-  íconos propios de Uncode. Si carga antes (lo normal), se rompen los de los plugins.
+  íconos propios de Uncode. Si carga antes, se rompen los de los plugins.
   Las dos hojas definen los mismos nombres con la misma especificidad, así que la que
   carga al final le gana a la otra en *todos* ellos: con cualquier orden, uno de los
   dos lados pierde. Medí los dos órdenes y pasa exactamente eso.
@@ -113,6 +113,18 @@ explícito de Font Awesome**, que es justo lo que Uncode nunca usa:
 Esa regla tiene más especificidad que la de Uncode (dos clases contra una), así que
 gana sin `!important` y sin importar en qué orden se carguen las hojas. Y como exige
 el prefijo, los íconos propios del tema (`<i class="fa fa-tiktok">`) ni se enteran.
+
+Falta el otro lado: hay plugins que cargan Font Awesome *después* de Uncode
+(GeoDirectory, por ejemplo), y entonces el que pierde es el tema. Para eso va la regla
+espejo, que le devuelve a Uncode su carácter en sus propios íconos:
+
+```css
+.fa.fa-tiktok::before { content: "\e92f"; }
+```
+
+Con Font Awesome 6.6 o posterior hace falta para *todas* las clases del tema, no solo
+las que chocan: esa versión trae una regla genérica `.fa::before` que pisa cualquier
+ícono `.fa`.
 
 Hace falta una regla así por cada una de las clases que chocan. Aquí es donde entra
 el plugin.
@@ -243,8 +255,8 @@ Además:
 
 - el CSS que calcula el plugin es idéntico al del script de referencia de este repo;
 - al cambiar la hoja de Uncode, el plugin se recalculó solo;
-- con las hojas en el orden inverso, el plugin no cambia nada, ni para bien ni para
-  mal;
+- con Font Awesome cargando después de Uncode, y con Font Awesome 6.7, los íconos de
+  los dos lados salen bien (`tests/matriz.sh`);
 - con un tema que no es Uncode, no aplica nada;
 - se instala desde el `.zip` sin un solo error ni aviso de PHP.
 

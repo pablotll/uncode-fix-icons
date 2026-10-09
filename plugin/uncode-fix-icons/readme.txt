@@ -4,7 +4,7 @@ Tags: uncode, font awesome, icons, fontawesome, geodirectory
 Requires at least: 5.6
 Tested up to: 7.1
 Requires PHP: 7.0
-Stable tag: 1.1.1
+Stable tag: 1.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -53,6 +53,13 @@ No lo arregla: los iconos que dependian de esa fuente se quedan sin ella. Cambia
 icono equivocado por un icono roto.
 
 == Changelog ==
+
+= 1.2.0 =
+* Ahora tambien protege los iconos propios del tema (`<i class="fa fa-tiktok">`). Si un plugin encola Font Awesome DESPUES de Uncode (GeoDirectory y los demas de AyeCode lo hacen), le ganaba el codepoint de Font Awesome y el icono del tema salia como otro glifo.
+* Soporta Font Awesome 6.6 y posteriores. Su regla `.fa::before{content:var(--fa)}` pisaba todos los iconos del tema, y los que Font Awesome no conoce (como `fa-search3`) desaparecian. El plugin lo detecta y cubre todas las clases de Uncode.
+* Lee el nuevo formato de Font Awesome 6.6+ (`.fa-x{--fa:"..."}`); antes no encontraba ninguna regla en esas hojas.
+* Calcula al final de `wp_enqueue_scripts`. Con la prioridad 100 de antes no veia la hoja de Font Awesome que AyeCode registra en 5000, y usaba la tabla de respaldo.
+* Deshace la negrita sintetica (`font-weight:900` de Font Awesome) en los iconos del tema.
 
 = 1.1.1 =
 * Corrige un error fatal de la 1.1.0: cualquier peticion a admin-ajax.php (busquedas, formularios, traducciones, optimizadores de imagen...) respondia 500. El actualizador se enganchaba antes de que WordPress cargara las funciones de usuarios; ahora arranca en plugins_loaded. Si tienes la 1.1.0, actualiza desde Escritorio > Actualizaciones.

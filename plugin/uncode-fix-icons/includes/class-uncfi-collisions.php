@@ -160,7 +160,7 @@ class UNCFI_Collisions {
 	}
 
 	/**
-	 * Cuenta reglas `.fa-x::before{content:"\xxxx"}` en un archivo.
+	 * Cuenta las reglas de codepoint `.fa-*` de un archivo.
 	 *
 	 * Lee solo los primeros 256 KB: de sobra para el mapa de Font Awesome, y
 	 * evita cargar en memoria cualquier hoja grande que ande por ahi.
@@ -179,7 +179,8 @@ class UNCFI_Collisions {
 			return 0;
 		}
 
-		return (int) preg_match_all( '#\.fa-[a-z0-9-]+::?before\s*\{[^}]*content#i', $css );
+		// FA <= 6.5 trae `.fa-x::before{content:"\xxxx"}`; FA >= 6.6, `.fa-x{--fa:"\xxxx"}`.
+		return (int) preg_match_all( '#\.fa-[a-z0-9-]+(?:::?before)?\s*\{[^}]*(?:content|--fa\s*:)#i', $css );
 	}
 
 	/**
@@ -298,20 +299,27 @@ class UNCFI_Collisions {
 			}
 		}
 
+		$mapa_uncode = '' === $css_uncode ? array() : self::parsear( $css_uncode );
+
 		if ( '' === $css_uncode || '' === $css_fa ) {
 			$mapa = require UNCFI_DIR . 'data/fallback-collisions.php';
+
+			// Lado Uncode: si hay una hoja de FA que no pudimos leer no sabemos su
+			// version, y con FA >= 6.6 cualquier icono del tema puede romperse; se
+			// cubren todos. Sin hoja de FA, basta con las colisiones conocidas.
+			$propios = $fa ? $mapa_uncode : array_intersect_key( $mapa_uncode, $mapa );
+
 			return array(
-				'css'    => self::render( $mapa ),
-				'count'  => count( $mapa ),
+				'css'    => self::render( $mapa ) . self::render_uncode( $propios ),
+				'count'  => count( $mapa ) + count( $propios ),
 				'source' => 'fallback',
 				'fa'     => $fa ? $fa['handle'] : '',
 				'uncode' => $uncode ? $uncode : '',
 			);
 		}
 
-		$mapa_uncode = self::parsear( $css_uncode );
-		$mapa_fa     = self::parsear( $css_fa );
-		$colisiones  = array();
+		$mapa_fa    = self::parsear( $css_fa );
+		$colisiones = array();
 
 		foreach ( $mapa_fa as $clase => $codepoint ) {
 			if ( isset( $mapa_uncode[ $clase ] ) && $mapa_uncode[ $clase ] !== $codepoint ) {
@@ -321,9 +329,16 @@ class UNCFI_Collisions {
 
 		ksort( $colisiones );
 
+		// FA >= 6.6 trae `.fa::before{content:var(--fa)}`: pisa TODOS los iconos
+		// `.fa` del tema, choquen de nombre o no (los que FA no conoce se quedan
+		// sin `content` y desaparecen). Con FA anterior solo estorban las colisiones.
+		$propios = false !== strpos( $css_fa, 'var(--fa)' )
+			? $mapa_uncode
+			: array_intersect_key( $mapa_uncode, $colisiones );
+
 		return array(
-			'css'    => self::render( $colisiones ),
-			'count'  => count( $colisiones ),
+			'css'    => self::render( $colisiones ) . self::render_uncode( $propios ),
+			'count'  => count( $colisiones ) + count( $propios ),
 			'source' => 'calculado',
 			'fa'     => $fa['handle'],
 			'uncode' => $uncode,
@@ -331,7 +346,8 @@ class UNCFI_Collisions {
 	}
 
 	/**
-	 * Extrae `clase => codepoint` de las reglas `.fa-x::before{content:"\xxxx"}`.
+	 * Extrae `clase => codepoint` de las reglas `.fa-x::before{content:"\xxxx"}`
+	 * y, para FA >= 6.6, de `.fa-x{--fa:"\xxxx"}`.
 	 *
 	 * @param string $css Hoja completa.
 	 * @return array<string,string>
@@ -346,13 +362,17 @@ class UNCFI_Collisions {
 		}
 
 		foreach ( $reglas as $regla ) {
-			if ( ! preg_match( '#content\s*:\s*["\']\\\\([0-9a-fA-F]+)["\']#i', $regla[2], $m ) ) {
+			if ( preg_match( '#content\s*:\s*["\']\\\\([0-9a-fA-F]+)["\']#i', $regla[2], $m ) ) {
+				$patron = '#^\.(fa-[a-z0-9-]+)::?before$#';
+			} elseif ( preg_match( '#(?:^|;)\s*--fa\s*:\s*["\']\\\\([0-9a-fA-F]+)["\']#i', $regla[2], $m ) ) {
+				$patron = '#^\.(fa-[a-z0-9-]+)$#';
+			} else {
 				continue;
 			}
 			$codepoint = strtolower( $m[1] );
 
 			foreach ( explode( ',', $regla[1] ) as $selector ) {
-				if ( preg_match( '#^\.(fa-[a-z0-9-]+)::?before$#', trim( $selector ), $s ) ) {
+				if ( preg_match( $patron, trim( $selector ), $s ) ) {
 					$mapa[ $s[1] ] = $codepoint;
 				}
 			}
@@ -362,8 +382,9 @@ class UNCFI_Collisions {
 	}
 
 	/**
-	 * Arma el CSS. La especificidad (0,2,0) le gana al (0,1,1) de Uncode sin
-	 * `!important`, y por eso el orden de carga da igual.
+	 * Lado Font Awesome: restaura el codepoint de FA en los iconos con prefijo
+	 * explicito, que Uncode nunca usa. La especificidad (0,2,1) le gana al
+	 * (0,1,1) de Uncode sin `!important`, y por eso el orden de carga da igual.
 	 *
 	 * @param array<string,string> $colisiones Mapa clase => codepoint.
 	 * @return string
@@ -381,6 +402,38 @@ class UNCFI_Collisions {
 		}
 
 		return implode( "\n", $lineas );
+	}
+
+	/**
+	 * Lado Uncode: restaura el codepoint del tema en sus propios iconos
+	 * (`<i class="fa fa-tiktok">`), por si Font Awesome carga DESPUES de
+	 * `uncode-icons.css` o trae la regla generica `.fa::before` de FA >= 6.6.
+	 *
+	 * `.fa.fa-x::before` es (0,2,1) contra el (0,1,1) de `.fa-x::before` y de
+	 * `.fa::before` de FA, asi que tampoco depende del orden. No hace falta
+	 * excluir los prefijos de FA: un elemento con `.fa` se dibuja siempre con
+	 * la fuente de Uncode (`font-family:'uncodeicon' !important`), lleve o no
+	 * `.fas`, asi que nunca es un icono de FA que funcione.
+	 *
+	 * La regla de `font-weight` deshace el `.fa{font-weight:900}` de FA, que
+	 * cargado despues engrosa los iconos del tema con negrita sintetica.
+	 *
+	 * @param array<string,string> $propios Mapa clase => codepoint de Uncode.
+	 * @return string
+	 */
+	public static function render_uncode( $propios ) {
+		if ( ! $propios ) {
+			return '';
+		}
+
+		ksort( $propios );
+		$lineas = array( sprintf( '.fa:not(%s){font-weight:normal}', self::PREFIJOS ) );
+
+		foreach ( $propios as $clase => $codepoint ) {
+			$lineas[] = sprintf( '.fa.%s::before{content:"\\%s"}', $clase, $codepoint );
+		}
+
+		return "\n" . implode( "\n", $lineas );
 	}
 
 	/**

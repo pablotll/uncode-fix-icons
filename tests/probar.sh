@@ -5,6 +5,9 @@
 # Uso:
 #   UNCODE=/ruta/a/uncode.zip ./tests/probar.sh      # o .tar.gz
 #
+# Despues, ./tests/matriz.sh repite la medicion con FA 6.5.1 y 6.7.2, cargado
+# antes y despues de Uncode, y servido local o desde use.fontawesome.com.
+#
 # Uncode es un tema comercial: este repo no lo incluye. Usa tu propia copia (la
 # descargas de ThemeForest). Font Awesome Free 6.5.1 se descarga al momento.
 #
@@ -16,7 +19,8 @@ cd "$(dirname "$0")"
 RAIZ="$(cd .. && pwd)"
 PUERTO="${UFI_PORT:-8931}"
 URL="http://localhost:$PUERTO"
-FA="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1"
+FA_VER="${FA_VER:-6.5.1}"
+FA="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@$FA_VER"
 
 if [ -z "${UNCODE:-}" ] || [ ! -f "$UNCODE" ]; then
 	echo "Falta la copia de Uncode. Uso: UNCODE=/ruta/a/uncode.zip $0" >&2
@@ -45,7 +49,7 @@ docker compose exec -T wp bash -c 'cd /var/www/html/wp-content/themes &&
 	(unzip -qo /tmp/uncode.pkg 2>/dev/null || tar xzf /tmp/uncode.pkg) && chown -R www-data: uncode'
 wp theme activate uncode
 
-echo "→ Instalando el proveedor de Font Awesome 6.5.1 (descarga oficial)"
+echo "→ Instalando el proveedor de Font Awesome $FA_VER (descarga oficial)"
 TMP="$(mktemp -d)"
 trap 'rm -r "$TMP"' EXIT
 mkdir -p "$TMP/fa-provider/css" "$TMP/fa-provider/webfonts"
@@ -57,6 +61,7 @@ done
 docker compose cp "$TMP/fa-provider" wp:/var/www/html/wp-content/plugins/
 docker compose exec -T wp chown -R www-data: /var/www/html/wp-content/plugins/fa-provider
 wp plugin activate fa-provider
+wp config set UFI_FA_VER "$FA_VER"
 
 echo "→ Sin el plugin (aquí debe fallar: es el bug)"
 wp plugin deactivate uncode-fix-icons 2>/dev/null || true
